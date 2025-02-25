@@ -4,10 +4,11 @@ This MATLAB program provides a suite of tools for matrix manipulation and analys
 
 ## Getting Started
 
-1. Launch MATLAB
-2. Navigate to the program directory
-3. Run `startup.m` to initialize the program
-   - This sets up the global matrix history for the undo function
+1. Open MATLAB
+2. In MATLAB's file explorer, navigate to the folder you just downloaded
+3. Double-click on `startup.m` in MATLAB's file explorer
+4. Click the "Run" button in MATLAB's editor toolbar or press F5
+   - This initializes the program and sets up the global matrix history for the undo function
 
 ## Available Functions
 
@@ -43,7 +44,20 @@ Calculates and displays the inverse of a square matrix if it exists.
 ```matlab
 result = custom_ref(matrix)
 ```
-Converts a matrix to Row Echelon Form using elementary row operations.
+Converts a matrix to Row Echelon Form using elementary row operations. Unlike MATLAB's built-in `rref`:
+
+**Advantages over MATLAB's rref:**
+- Handles symbolic expressions naturally without rounding or simplification errors
+- Maintains exact fractions and symbolic terms throughout computation
+- Shows step-by-step row operations for educational purposes
+- Integrates with the program's undo history system
+
+Example with symbolic matrix:
+```matlab
+syms a b
+A = [a 2*b; 3*a b];
+result = custom_ref(A)  % Maintains symbolic expressions in result
+```
 
 ### REF Analysis
 ```matlab
