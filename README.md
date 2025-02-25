@@ -18,6 +18,14 @@ showmatrix(matrix)
 ```
 Displays a matrix in a clean format with proper spacing and brackets.
 
+Example:
+```matlab
+A = [1 2; 3 4];
+showmatrix(A)
+% Output:
+% [1 2;3 4]
+```
+
 ### Elementary Row Operations
 ```matlab
 elem(matrix, row1, row2, operation, scalar)
@@ -32,6 +40,8 @@ Example:
 ```matlab
 A = [1 2; 3 4];
 A = elem(A, 1, 2, '+', 2)  % Adds 2 times row 2 to row 1
+% Output:
+% [7 10;3 4]
 ```
 
 ### Matrix Inverse
@@ -39,6 +49,15 @@ A = elem(A, 1, 2, '+', 2)  % Adds 2 times row 2 to row 1
 inverse(matrix)
 ```
 Calculates and displays the inverse of a square matrix if it exists.
+
+Example:
+```matlab
+A = [1 2; 3 4];
+inverse(A)
+% Output:
+% Inverse of the matrix is:
+% [-2 1;1.5000 -0.5000]
+```
 
 ### Row Echelon Form (REF)
 ```matlab
@@ -56,7 +75,10 @@ Example with symbolic matrix:
 ```matlab
 syms a b
 A = [a 2*b; 3*a b];
-result = custom_ref(A)  % Maintains symbolic expressions in result
+result = custom_ref(A)
+% Output:
+% [ a, 2*b]
+% [ 0, -5*b]
 ```
 
 ### REF Analysis
@@ -68,11 +90,34 @@ Analyzes a matrix in REF form to determine:
 - Conditions for infinite solutions
 - Cases where no solutions exist
 
+Example:
+```matlab
+A = [1 2 3; 0 0 5; 0 0 0];
+analyze_ref(A)
+% Output:
+% Analysis of REF Matrix Solutions:
+% ================================
+% 
+% No critical cases found.
+% 
+% Solution Analysis:
+% -----------------
+% System has unique solutions for all parameter values.
+```
+
 ### Undo Operation
 ```matlab
 result = undo()
 ```
 Reverts to the previous matrix state. The program automatically stores matrix history when using elementary row operations.
+
+Example:
+```matlab
+result = undo()
+% Output:
+% Previous matrix state:
+% [1 2;3 4]
+```
 
 ## Error Handling
 
