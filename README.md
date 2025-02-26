@@ -5,10 +5,9 @@ This MATLAB program provides a suite of tools for matrix manipulation and analys
 ## Getting Started
 
 1. Open MATLAB
-2. In MATLAB's file explorer, navigate to the folder you just downloaded
-3. Double-click on `startup.m` in MATLAB's file explorer
-4. Click the "Run" button in MATLAB's editor toolbar or press F5
-   - This initializes the program and sets up the global matrix history for the undo function
+2. Navigate to the downloaded folder in MATLAB's file explorer
+3. Run `startup.m` to initialize the program
+   - This sets up the global matrix history for undo functionality
 
 ## Available Functions
 
@@ -63,75 +62,54 @@ inverse(A)
 ```matlab
 result = custom_ref(matrix)
 ```
-Converts a matrix to Row Echelon Form using elementary row operations. Unlike MATLAB's built-in `rref`:
+Converts a matrix to Row Echelon Form with these advantages over MATLAB's `rref`:
+- Full symbolic variable support
+- Exact fraction handling
+- Step-by-step row operations shown
+- Maintains simpler symbolic expressions
 
-**Advantages over MATLAB's rref:**
-- Handles symbolic expressions naturally without rounding or simplification errors
-- Maintains exact fractions and symbolic terms throughout computation
-- Shows step-by-step row operations for educational purposes
-- Integrates with the program's undo history system
-
-Example with symbolic matrix:
+Example with symbolic variables:
 ```matlab
 syms a b
-A = [a 2*b; 3*a b];
+A = [1 a; b 4];
 result = custom_ref(A)
 % Output:
-% [ a, 2*b]
-% [ 0, -5*b]
+% [1 a;0 4-a*b]
 ```
 
 ### REF Analysis
 ```matlab
 analyze_ref(matrix)
 ```
-Analyzes a matrix in REF form to determine:
-- Whether the system has unique solutions
-- Conditions for infinite solutions
-- Cases where no solutions exist
+Analyzes matrices in REF form to find critical values of parameters.
 
-Example:
+Example with parametric matrix:
 ```matlab
-A = [1 2 3; 0 0 5; 0 0 0];
+syms a b
+A = [a b 1; 0 b/4 2; 0 0 a-3];
 analyze_ref(A)
 % Output:
-% Analysis of REF Matrix Solutions:
-% ================================
-% 
-% No critical cases found.
-% 
-% Solution Analysis:
-% -----------------
-% System has unique solutions for all parameter values.
+% Critical Values:
+% ===============
+% a = 0
+% a = 3
+% b = 0
 ```
 
 ### Undo Operation
 ```matlab
 result = undo()
 ```
-Reverts to the previous matrix state. The program automatically stores matrix history when using elementary row operations.
-
-Example:
-```matlab
-result = undo()
-% Output:
-% Previous matrix state:
-% [1 2;3 4]
-```
+Reverts to the previous matrix state.
 
 ## Error Handling
-
-The program includes error checking for:
-- Invalid matrix dimensions
-- Non-square matrices for inverse operations
-- Singular matrices
-- Invalid row indices
-- Missing arguments
-- Invalid operations
+- Validates matrix dimensions
+- Checks for square matrices in inverse operations
+- Detects singular matrices
+- Validates row indices and operations
 
 ## Tips
-
-1. Always initialize with `startup.m` before beginning operations
-2. Use `showmatrix()` to display results in a clean format
-3. The undo function maintains a history of operations, allowing you to step back if you make a mistake
-4. For symbolic calculations, you can input matrices using symbolic variables (e.g., using `sym` variables)
+1. Always run `startup.m` first
+2. Use `showmatrix()` for clean output
+3. Leverage undo functionality for mistakes
+4. Use symbolic variables (`syms`) for parametric matrices

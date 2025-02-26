@@ -9,11 +9,17 @@ function showmatrix(matrix)
     for i = 1:m
         % Iterate through columns
         for j = 1:n
-            % Format the number (handle integer vs decimal)
-            if matrix(i,j) == round(matrix(i,j))
-                fprintf('%d', matrix(i,j));
+            element = matrix(i,j);
+            % Check if element is symbolic
+            if isa(element, 'sym')
+                fprintf('%s', char(element));
+            % Handle numeric values
             else
-                fprintf('%.4f', matrix(i,j));
+                if element == round(element)
+                    fprintf('%d', element);
+                else
+                    fprintf('%.4f', element);
+                end
             end
             
             % Add space between elements except for last column
