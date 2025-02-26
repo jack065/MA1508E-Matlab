@@ -77,7 +77,7 @@ result = custom_ref(A)
 % [1 a;0 4-a*b]
 ```
 
-### REF Analysis
+### REF Analysis (USE AT YOUR OWN RISK! NOT WORKING AS EXPECTED!)
 ```matlab
 analyze_ref(matrix)
 ```
