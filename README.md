@@ -29,8 +29,8 @@ showmatrix(A)
 ```matlab
 elem(matrix, row1, row2, operation, scalar)
 ```
-Performs elementary row operations:
-- `'swap'`: Swaps row1 and row2
+Performs elementary row operations and displays the elementary operation matrix (E) with its inverse (E^-1):
+- `'s'`: Swaps row1 and row2
 - `'+'`: Adds scalar × row2 to row1
 - `'-'`: Subtracts scalar × row2 from row1
 - `'*'`: Multiplies row1 by scalar
@@ -40,6 +40,11 @@ Example:
 A = [1 2; 3 4];
 A = elem(A, 1, 2, '+', 2)  % Adds 2 times row 2 to row 1
 % Output:
+% E:                 E^-1:
+% --                 ----
+% 1      2          1      -2     
+% 0      1          0      1      
+%
 % [7 10;3 4]
 ```
 
