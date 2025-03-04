@@ -101,6 +101,82 @@ analyze_ref(A)
 % b = 0
 ```
 
+### Identify Basis
+```matlab
+basis = identify_basis(input)
+```
+Finds a basis for a vector space using three different input methods:
+
+1. Parametric representation:
+```matlab
+syms a b c d
+param_vector = [a+b; a+c; c+d; b+d];
+basis = identify_basis(param_vector)
+% Output:
+% Coefficient matrix A:
+% [1, 1, 0, 0]
+% [1, 0, 1, 0]
+% [0, 0, 1, 1]
+% [0, 1, 0, 1]
+% 
+% Basis vectors for the vector space:
+% v1 = [1; 0; 0; 1]
+% v2 = [1; 0; 1; 0]
+% v3 = [0; 1; 0; 1]
+```
+
+2. Spanning set of vectors:
+```matlab
+vectors = {[1;0;-1], [-1;2;3], [0;3;0], [1;-1;1]};
+basis = identify_basis(vectors)
+% Output:
+% Basis for the vector space:
+% b1 = [1; 0; -1]
+% b2 = [-1; 2; 3]
+% b3 = [0; 3; 0]
+```
+
+3. Constraints on variables:
+```matlab
+syms a b c d
+vars = [a; b; c; d];
+constraints = {a+b==c, d==0};
+basis = identify_basis(vars, constraints)
+% Output:
+% Basis vectors for the vector space:
+% v1 = [1; 0; 1; 0]
+% v2 = [0; 1; 1; 0]
+```
+
+### Subspace Testing
+```matlab
+linear_span(vector_set, constraints)
+```
+Determines if a vector set with constraints forms a subspace by checking:
+- Zero vector inclusion
+- Homogeneity (closure under scalar multiplication)
+- Closure under addition
+
+Example with a subspace:
+```matlab
+syms a b c
+vector_set = [a; b; c];
+constraints = {a == b, b == c};
+linear_span(vector_set, constraints)
+% Output:
+% Result: The set IS a subspace.
+```
+
+Example with a non-subspace:
+```matlab
+syms a b c d
+vector_set = [a; b; c; d];
+constraints = {a*b == c*d};
+linear_span(vector_set, constraints)
+% Output:
+% Result: The set is NOT a subspace.
+```
+
 ### Undo Operation
 ```matlab
 result = undo()
