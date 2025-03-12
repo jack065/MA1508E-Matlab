@@ -1,4 +1,4 @@
-function result = elem(matrix, row1, row2, operation, scalar)
+function result = elem(matrix, row1, operation, row2, scalar)
     global matrix_history;
     matrix_history{end+1} = matrix;
     [m, ~] = size(matrix);
