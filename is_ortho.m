@@ -1,22 +1,17 @@
-function [is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho(varargin)
+function is_ortho(varargin)
     % IS_ORTHO - Check if vectors form orthogonal/orthonormal set and normalize them
     %
     % Usage:
-    %   [is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho(v1, v2, ...)
-    %   [is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho({v1, v2, ...})
+    %   is_ortho(v1, v2, ...)
+    %   is_ortho({v1, v2, ...})
     %
     % Inputs:
     %   v1, v2, ... - Column vectors to check
     %   OR
     %   {v1, v2, ...} - Cell array of column vectors
     %
-    % Outputs:
-    %   is_orthogonal - Boolean indicating if vectors are orthogonal
-    %   is_orthonormal - Boolean indicating if vectors are orthonormal
-    %   orthonormal_set - Cell array of normalized vectors
-    %
     % Example:
-    %   [isOrtho, isOrthoNormal, normSet] = is_ortho([1;0;0], [0;1;0], [0;0;1])
+    %   is_ortho([1;0;0], [0;1;0], [0;0;1])
     
     % Handle different input formats
     if nargin == 1 && iscell(varargin{1})
@@ -36,9 +31,6 @@ function [is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho(varargin)
     n_vectors = length(vectors);
     if n_vectors < 2
         fprintf('Need at least 2 vectors to check orthogonality.\n');
-        is_orthogonal = true;  % Single vector is trivially orthogonal
-        is_orthonormal = (norm(vectors{1}) == 1);
-        orthonormal_set = {vectors{1}/norm(vectors{1})};
         return;
     end
     
@@ -73,7 +65,6 @@ function [is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho(varargin)
     
     % Check if vectors are unit length (for orthonormality)
     is_orthonormal = is_orthogonal;
-    orthonormal_set = cell(size(vectors));
     
     fprintf('\nChecking vector norms...\n');
     for i = 1:n_vectors
@@ -83,9 +74,6 @@ function [is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho(varargin)
         if abs(vector_norm - 1) > tol
             is_orthonormal = false;
         end
-        
-        % Create normalized vector for output
-        orthonormal_set{i} = vectors{i} / vector_norm;
     end
     
     if is_orthonormal
@@ -94,15 +82,25 @@ function [is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho(varargin)
         fprintf('The set is not orthonormal.\n');
     end
     
-    % Display normalized vectors
+    % Display normalized vectors with exact forms
     fprintf('\nOrthonormal set:\n');
     for i = 1:n_vectors
-        fprintf('Vector %d: [', i);
-        for j = 1:length(orthonormal_set{i})
+        % Calculate vector norm
+        vector_norm = norm(vectors{i});
+        
+        % Display as 1/√(norm^2) × [original vector]
+        fprintf('Vector %d: 1/√%d × [', i, round(vector_norm^2));
+        
+        % Print the original vector entries
+        for j = 1:length(vectors{i})
             if j > 1
                 fprintf('; ');
             end
-            fprintf('%g', orthonormal_set{i}(j));
+            if vectors{i}(j) == round(vectors{i}(j))
+                fprintf('%d', vectors{i}(j));
+            else
+                fprintf('%g', vectors{i}(j));
+            end
         end
         fprintf(']\n');
     end

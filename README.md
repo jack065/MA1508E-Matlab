@@ -179,23 +179,46 @@ linear_span(vector_set, constraints)
 
 ### Orthogonality Testing
 ```matlab
-[is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho(v1, v2, ...)
+is_ortho(v1, v2, ...)
 ```
-Checks if a set of vectors forms an orthogonal or orthonormal set and provides a normalized version of the vectors.
-
-Example:
+Example with standard basis vectors:
 ```matlab
 % Standard basis vectors (already orthonormal)
-[isOrtho, isOrthoNorm, normSet] = is_ortho([1;0;0], [0;1;0], [0;0;1])
+is_ortho([1;0;0], [0;1;0], [0;0;1])
 % Output:
+% Checking orthogonality...
 % The set is orthogonal!
+%
+% Checking vector norms...
+% Vector 1 norm = 1
+% Vector 2 norm = 1
+% Vector 3 norm = 1
 % The set is orthonormal!
-% 
+%
+% Orthonormal set:
+% Vector 1: 1/√1 × [1; 0; 0]
+% Vector 2: 1/√1 × [0; 1; 0]
+% Vector 3: 1/√1 × [0; 0; 1]
+```
+
+Example with orthogonal vectors (not normalized):
+```matlab
 % Orthogonal vectors (not normalized)
-[isOrtho, isOrthoNorm, normSet] = is_ortho([2;0;0], [0;3;0], [0;0;4])
+is_ortho([2;0;0], [0;3;0], [0;0;4])
 % Output:
+% Checking orthogonality...
 % The set is orthogonal!
+%
+% Checking vector norms...
+% Vector 1 norm = 2
+% Vector 2 norm = 3
+% Vector 3 norm = 4
 % The set is not orthonormal.
+%
+% Orthonormal set:
+% Vector 1: 1/√4 × [2; 0; 0]
+% Vector 2: 1/√9 × [0; 3; 0]
+% Vector 3: 1/√16 × [0; 0; 4]
 ```
 
 ### Gram-Schmidt Orthogonalization
