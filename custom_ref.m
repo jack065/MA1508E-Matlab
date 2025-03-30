@@ -12,7 +12,6 @@ function result = custom_ref(matrix, varargin)
     % Optional parameters:
     %   'ShowSteps'      - Display step-by-step operations (default: false)
     %   'NormalizePivots'- Divide rows by pivot to get 1s on diagonal (default: false)
-    %   'Simplify'       - Apply simplification after operations (default: true)
     %
     % Example:
     %   syms a b
@@ -23,12 +22,10 @@ function result = custom_ref(matrix, varargin)
     p = inputParser;
     addParameter(p, 'ShowSteps', false, @islogical);
     addParameter(p, 'NormalizePivots', false, @islogical);
-    addParameter(p, 'Simplify', true, @islogical);
     parse(p, varargin{:});
     
     show_steps = p.Results.ShowSteps;
     normalize_pivots = p.Results.NormalizePivots;
-    apply_simplify = p.Results.Simplify;
     
     % Convert to symbolic if not already
     if ~isa(matrix, 'sym')
@@ -69,14 +66,45 @@ function result = custom_ref(matrix, varargin)
             break;
         end
         
-        % Find first nonzero entry in current column from current row down
-        i = row;
-        while i <= m && result(i,lead) == 0
-            i = i + 1;
+        % Find best pivot row - prefer 1s, then numbers, then simple symbolic expressions
+        best_row = 0;
+        best_score = -Inf;
+        
+        for i = row:m
+            if result(i,lead) == 0
+                continue;  % Skip zero entries
+            end
+            
+            current_score = -Inf;
+            
+            % Prefer 1s (highest score)
+            if result(i,lead) == 1
+                current_score = 1000;
+            % Then prefer -1s
+            elseif result(i,lead) == -1
+                current_score = 900;
+            % Then prefer integers/numeric values
+            elseif isempty(symvar(result(i,lead)))
+                % Only convert to double if there are no symbolic variables
+                numeric_value = double(result(i,lead));
+                current_score = 800 - abs(numeric_value);
+            % Last resort: symbolic expressions (score based on complexity)
+            else
+                expr_str = char(result(i,lead));
+                % Simpler expressions get higher scores
+                current_score = 500 - length(expr_str);
+            end
+            
+            if current_score > best_score
+                best_score = current_score;
+                best_row = i;
+            end
         end
         
         % If we found a nonzero entry
-        if i <= m
+        if best_row > 0
+            i = best_row;
+            
             % Swap rows if necessary
             if i ~= row
                 step_count = step_count + 1;
@@ -84,24 +112,21 @@ function result = custom_ref(matrix, varargin)
                     fprintf('Step %d: Swap rows %d and %d\n', step_count, row, i);
                 end
                 
-                % Create elementary matrix for swap and update history
-                swap_matrix = eye(m);
-                swap_matrix([row,i],:) = swap_matrix([i,row],:);
-                
                 % Perform the swap
                 temp = result(row,:);
                 result(row,:) = result(i,:);
                 result(i,:) = temp;
                 
                 if show_steps
-                    disp(result);
+                    result_display = simplify(result);
+                    disp(result_display);
                     fprintf('\n');
                 end
             end
             
-            % Normalize pivot if requested
+            % Normalize pivot if requested and it's a numeric value
             pivot = result(row,lead);
-            if normalize_pivots && pivot ~= 1
+            if normalize_pivots && pivot ~= 1 && isempty(symvar(pivot))
                 step_count = step_count + 1;
                 if show_steps
                     fprintf('Step %d: Multiply row %d by 1/%s\n', step_count, row, char(pivot));
@@ -111,46 +136,64 @@ function result = custom_ref(matrix, varargin)
                 result(row,:) = result(row,:) / pivot;
                 
                 if show_steps
-                    disp(result);
+                    result_display = simplify(result);
+                    disp(result_display);
                     fprintf('\n');
                 end
             end
             
-            % Eliminate entries below pivot
+            % Eliminate entries below pivot using multiplication instead of division
             for i = row+1:m
                 if result(i,lead) ~= 0
-                    factor = result(i,lead) / result(row,lead);
+                    pivot_row = result(row,lead);
+                    pivot_i = result(i,lead);
+                    
                     step_count = step_count + 1;
                     
-                    if show_steps
-                        if apply_simplify
-                            factor = simplify(factor);
+                    % Check if pivot_row contains any symbolic variables
+                    if ~isempty(symvar(pivot_row))
+                        % Use multiplication and subtraction to avoid division by symbols
+                        if show_steps
+                            fprintf('Step %d: R%d = (%s)×R%d - (%s)×R%d\n', ...
+                                step_count, i, char(pivot_row), i, char(pivot_i), row);
                         end
-                        fprintf('Step %d: R%d = R%d - (%s) × R%d\n', ...
-                            step_count, i, i, char(factor), row);
+                        
+                        % Multiply current row by pivot_row
+                        result(i,:) = pivot_row * result(i,:);
+                        
+                        % Subtract pivot_i times the pivot row
+                        result(i,:) = result(i,:) - pivot_i * result(row,:);
+                    else
+                        % Use standard elimination with division for numeric pivots
+                        factor = pivot_i / pivot_row;
+                        
+                        if show_steps
+                            factor_display = simplify(factor);
+                            fprintf('Step %d: R%d = R%d - (%s)×R%d\n', ...
+                                step_count, i, i, char(factor_display), row);
+                        end
+                        
+                        % Perform elimination
+                        result(i,:) = result(i,:) - factor * result(row,:);
                     end
                     
-                    % Perform elimination
-                    result(i,:) = result(i,:) - factor*result(row,:);
-                    
                     if show_steps
-                        if apply_simplify
-                            result = simplify(result);
-                        end
-                        disp(result);
+                        result_display = simplify(result);
+                        disp(result_display);
                         fprintf('\n');
                     end
                 end
             end
+            
+            lead = lead + 1;
+        else
+            % No nonzero entry found, move to next column
+            lead = lead + 1;
         end
-        
-        lead = lead + 1;
     end
     
-    % Clean up expression and store final result
-    if apply_simplify
-        result = simplify(result);
-    end
+    % Always simplify the final result
+    result = simplify(result);
     
     matrix_history{end+1} = result;
     
