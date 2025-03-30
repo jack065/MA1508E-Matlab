@@ -177,6 +177,82 @@ linear_span(vector_set, constraints)
 % Result: The set is NOT a subspace.
 ```
 
+### Orthogonality Testing
+```matlab
+[is_orthogonal, is_orthonormal, orthonormal_set] = is_ortho(v1, v2, ...)
+```
+Checks if a set of vectors forms an orthogonal or orthonormal set and provides a normalized version of the vectors.
+
+Example:
+```matlab
+% Standard basis vectors (already orthonormal)
+[isOrtho, isOrthoNorm, normSet] = is_ortho([1;0;0], [0;1;0], [0;0;1])
+% Output:
+% The set is orthogonal!
+% The set is orthonormal!
+% 
+% Orthogonal vectors (not normalized)
+[isOrtho, isOrthoNorm, normSet] = is_ortho([2;0;0], [0;3;0], [0;0;4])
+% Output:
+% The set is orthogonal!
+% The set is not orthonormal.
+```
+
+### Gram-Schmidt Orthogonalization
+```matlab
+[orthonormal_basis, orthogonal_basis] = gram_schmidt(v1, v2, ...)
+```
+Converts a set of vectors into an orthogonal/orthonormal basis using the Gram-Schmidt process.
+
+Example:
+```matlab
+% Create an orthonormal basis from non-orthogonal vectors
+[ONB, OB] = gram_schmidt([1;1;0], [1;0;1], [0;1;1])
+% Output:
+% Applying Gram-Schmidt process...
+% 
+% Vector 1: [1; 1; 0]
+%   u1 = [1; 1; 0]
+%   e1 = [0.7071; 0.7071; 0]
+% 
+% Vector 2: [1; 0; 1]
+%   Subtracting projection onto u1...
+%   u2 = [0.5; -0.5; 1]
+%   e2 = [0.4082; -0.4082; 0.8165]
+% 
+% Vector 3: [0; 1; 1]
+%   ...and so on
+```
+
+### Least Squares Solutions
+```matlab
+[rref_augmented, is_unique, projection] = least_square(A, b)
+```
+Computes the least squares solution to Ax = b and provides detailed information about the solution.
+
+Example:
+```matlab
+A = [1 2; 3 4; 5 6];
+b = [7; 8; 9];
+[rref_aug, unique_flag, proj] = least_square(A, b);
+% Output:
+% RREF of augmented matrix [A'A | A'b]:
+%      1     0     3
+%      0     1    2.5
+% 
+% The solution is UNIQUE (A has full column rank).
+% 
+% Projection of b onto column space of A:
+%    7.0000
+%    9.0000
+%   11.0000
+% 
+% Residual vector (b - projection):
+%    0.0000
+%   -1.0000
+%   -2.0000
+```
+
 ### Undo Operation
 ```matlab
 result = undo()
