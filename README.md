@@ -8,6 +8,7 @@ This MATLAB program provides a suite of tools for matrix manipulation and analys
 2. Navigate to the downloaded folder in MATLAB's file explorer
 3. Run `startup.m` to initialize the program
    - This sets up the global matrix history for undo functionality
+   - **Note:** Always run `startup.m` before using any other functions to ensure proper initialization.
 
 ## Available Functions
 
@@ -19,6 +20,7 @@ Initializes the global matrix history variable for undo functionality.
 ```matlab
 startup
 ```
+**Note:** This function must be run first to enable the undo functionality and ensure the program operates correctly.
 
 ---
 

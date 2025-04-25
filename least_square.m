@@ -57,7 +57,17 @@ function [rref_augmented, is_unique, projection] = least_square(A, b)
     
     % Display results
     fprintf('\nRREF of augmented matrix [A''A | A''b]:\n');
-    disp(rref_augmented);
+    % Display the matrix with format_exact for numeric values
+    for i = 1:size(rref_augmented, 1)
+        fprintf('[');
+        for j = 1:size(rref_augmented, 2)
+            if j > 1
+                fprintf(' ');
+            end
+            fprintf('%s', format_exact(rref_augmented(i,j)));
+        end
+        fprintf(']\n');
+    end
     
     if is_unique
         fprintf('\nThe solution is UNIQUE (A has full column rank).\n');
@@ -68,18 +78,40 @@ function [rref_augmented, is_unique, projection] = least_square(A, b)
     end
     
     fprintf('\nProjection of b onto column space of A:\n');
-    disp(projection);
+    fprintf('[');
+    for i = 1:length(projection)
+        if i > 1
+            fprintf('; ');
+        end
+        fprintf('%s', format_exact(projection(i)));
+    end
+    fprintf(']\n');
     
     % Calculate and display residual
     residual = b - projection;
     residual_norm = norm(residual);
     fprintf('\nResidual vector (b - projection):\n');
-    disp(residual);
-    fprintf('Residual norm ||b - Ax|| = %g\n', residual_norm);
+    fprintf('[');
+    for i = 1:length(residual)
+        if i > 1
+            fprintf('; ');
+        end
+        fprintf('%s', format_exact(residual(i)));
+    end
+    fprintf(']\n');
+    
+    fprintf('Residual norm ||b - Ax|| = %s\n', format_exact(residual_norm));
     
     % Verify the residual is orthogonal to column space
     orth_check = A' * residual;
     fprintf('\nVerification that residual is orthogonal to column space:\n');
     fprintf('\nVerify that the vector shown below is almost 0.\n');
-    disp(orth_check);
+    fprintf('[');
+    for i = 1:length(orth_check)
+        if i > 1
+            fprintf('; ');
+        end
+        fprintf('%s', format_exact(orth_check(i)));
+    end
+    fprintf(']\n');
 end

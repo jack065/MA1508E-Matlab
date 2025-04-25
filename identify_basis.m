@@ -67,7 +67,12 @@ function basis = find_basis_from_span(vectors)
     for i = 1:n_vectors
         fprintf('v%d = [', i);
         for j = 1:length(vectors{i})
-            fprintf('%.4g', vectors{i}(j));
+            % Use format_exact for vector components
+            if isnumeric(vectors{i}(j))
+                fprintf('%s', format_exact(vectors{i}(j)));
+            else
+                fprintf('%.4g', vectors{i}(j));
+            end
             if j < length(vectors{i})
                 fprintf('; ');
             end
@@ -79,7 +84,12 @@ function basis = find_basis_from_span(vectors)
     for i = 1:size(basis, 2)
         fprintf('b%d = [', i);
         for j = 1:size(basis, 1)
-            fprintf('%.4g', basis(j,i));
+            % Use format_exact for basis vector components
+            if isnumeric(basis(j,i))
+                fprintf('%s', format_exact(basis(j,i)));
+            else
+                fprintf('%.4g', basis(j,i));
+            end
             if j < size(basis, 1)
                 fprintf('; ');
             end
@@ -139,7 +149,8 @@ function basis = find_basis_from_parametric(param_vector)
             if isa(basis(j,i), 'sym')
                 fprintf('%s', char(basis(j,i)));
             else
-                fprintf('%.4g', basis(j,i));
+                % Use format_exact for numeric values
+                fprintf('%s', format_exact(basis(j,i)));
             end
             if j < size(basis, 1)
                 fprintf('; ');
@@ -206,4 +217,20 @@ function basis = find_basis_from_constraints(vars, constraints)
     
     fprintf('\nDimension of the vector space: %d\n', size(N, 2));
     basis = N;
+end
+
+function str = format_exact(value)
+    % FORMAT_EXACT - Format numeric values exactly
+    %
+    % Inputs:
+    %   value - Numeric value to format
+    %
+    % Outputs:
+    %   str - Formatted string representation of the value
+    
+    if abs(value) < 1e-10
+        str = '0';
+    else
+        str = sprintf('%.10g', value);
+    end
 end

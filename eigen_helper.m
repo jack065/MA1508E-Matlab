@@ -54,6 +54,7 @@ function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A)
         % Check if this eigenvalue is already in our list
         found = false;
         for j = 1:length(unique_evals)
+            % For complex numbers, need to compare both real and imaginary parts
             if abs(current_eval_double - double(unique_evals(j))) < 1e-10
                 algebraic_mults(j) = algebraic_mults(j) + 1;
                 found = true;
@@ -162,7 +163,8 @@ function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A)
             if i > 1
                 fprintf(', ');
             end
-            fprintf('%s', char(lambda_final(reg_indices(i))));
+            % Format the eigenvalue, handling complex values properly
+            format_complex_eigenvalue(lambda_final(reg_indices(i)));
         end
         fprintf('\n');
     else
@@ -180,7 +182,8 @@ function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A)
             if i > 1
                 fprintf(', ');
             end
-            fprintf('%s', char(lambda_final(gen_indices(i))));
+            % Format the eigenvalue, handling complex values properly
+            format_complex_eigenvalue(lambda_final(gen_indices(i)));
         end
         fprintf('\n');
         
@@ -195,11 +198,61 @@ function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A)
             if ~isempty(same_lambda_reg)
                 reg_idx = same_lambda_reg(1);
                 result = (symA - lambda_i*I) * gen_vec;
-                fprintf('Column %d is a generalized eigenvector of column %d (λ = %s)\n', ...
-                        gen_idx, reg_idx, char(lambda_i));
+                
+                fprintf('Column %d is a generalized eigenvector of column %d (λ = ', gen_idx, reg_idx);
+                format_complex_eigenvalue(lambda_i);
+                fprintf(')\n');
             end
         end
     else
         fprintf('No generalized eigenvectors needed - matrix is not defective.\n');
+    end
+end
+
+function format_complex_eigenvalue(lambda_val)
+    % Helper function to format complex eigenvalues correctly
+    try
+        % Convert to numeric for formatting
+        numeric_lambda = double(lambda_val);
+        
+        % Check if it's a complex number
+        if ~isreal(numeric_lambda)
+            % Format complex number in a + bi form
+            real_part = real(numeric_lambda);
+            imag_part = imag(numeric_lambda);
+            
+            % Format real and imaginary parts using format_exact when possible
+            if abs(real_part) > 1e-10
+                real_str = format_exact(real_part);
+                if abs(imag_part) > 1e-10
+                    imag_str = format_exact(abs(imag_part));
+                    if imag_part > 0
+                        fprintf('%s + %si', real_str, imag_str);
+                    else
+                        fprintf('%s - %si', real_str, imag_str);
+                    end
+                else
+                    fprintf('%s', real_str);
+                end
+            else
+                % Only imaginary part
+                if abs(imag_part) > 1e-10
+                    imag_str = format_exact(abs(imag_part));
+                    if imag_part > 0
+                        fprintf('%si', imag_str);
+                    else
+                        fprintf('-%si', imag_str);
+                    end
+                else
+                    fprintf('0'); % Both parts are zero
+                end
+            end
+        else
+            % Real number, use the standard format_exact
+            fprintf('%s', format_exact(numeric_lambda));
+        end
+    catch
+        % Fall back to symbolic display if numeric conversion fails
+        fprintf('%s', char(lambda_val));
     end
 end

@@ -12,16 +12,6 @@ function coords = rel_coords(basis, vector, varargin)
     %
     % Outputs:
     %   coords - Coordinates of the vector relative to the basis
-    %
-    % Example:
-    %   % With orthogonal basis
-    %   B = {[2;0;0], [0;3;0], [0;0;4]};
-    %   v = [4;6;8];
-    %   rel_coords(B, v)
-    %
-    %   % With orthonormal basis
-    %   B_norm = {[1;0;0], [0;1;0], [0;0;1]};
-    %   rel_coords(B_norm, v, 'norm')
     
     % Parse inputs
     is_orthonormal = false;
@@ -82,13 +72,9 @@ function coords = rel_coords(basis, vector, varargin)
             fprintf('; ');
         end
         
-        % Try to detect and format exact forms
-        [formatted, success] = format_exact(coords(i));
-        if success
-            fprintf('%s', formatted);
-        else
-            fprintf('%g', coords(i));
-        end
+        % Format the coordinate in exact form
+        formatted = format_exact(coords(i));
+        fprintf('%s', formatted);
     end
     fprintf(']\n\n');
     
@@ -129,73 +115,111 @@ function coords = rel_coords(basis, vector, varargin)
     end
 end
 
-function [formatted, success] = format_exact(val)
-    % Try to format a number in exact form with surds
-    success = false;
-    formatted = '';
+function formatted = format_exact(val)
+    % Enhanced function to format a number in exact form
+    % Provides more sophisticated formatting similar to gram_schmidt.m
     
-    % First try to see if it's a simple fraction
-    [n, d] = rat(val, 1e-10);
+    tolerance = 1e-9;
     
-    if d == 1
-        % It's just an integer
-        formatted = sprintf('%d', n);
-        success = true;
-        return;
-    elseif d > 0 && d <= 1000
-        % It's a simple fraction
-        formatted = sprintf('%d/%d', n, d);
-        success = true;
+    % Check for zero
+    if abs(val) < tolerance
+        formatted = '0';
         return;
     end
     
-    % Check for common surds like 1/√2, 1/√3, etc.
+    % Try rational approximation first
+    [n, d] = rat(val, tolerance);
+    
+    % Check if the approximation is good enough
+    if abs(val - n/d) < tolerance * max(1, abs(val))
+        if d == 1
+            % It's an integer
+            formatted = sprintf('%d', n);
+            return;
+        elseif d > 0 && d <= 1000
+            % It's a simple fraction
+            formatted = sprintf('%d/%d', n, d);
+            return;
+        end
+    end
+    
+    % Check for square roots
+    % First, try to find if val = a/√b or a*√b/c
     common_surds = [2, 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15];
     
-    % Check for patterns like 1/√n
-    for surd = common_surds
-        % Check if val is close to 1/sqrt(surd)
-        if abs(val - 1/sqrt(surd)) < 1e-10
-            formatted = sprintf('1/√%d', surd);
-            success = true;
-            return;
-        end
-        
-        % Check if val is close to -1/sqrt(surd)
-        if abs(val + 1/sqrt(surd)) < 1e-10
-            formatted = sprintf('-1/√%d', surd);
-            success = true;
-            return;
-        end
-        
-        % Check for patterns like a/√n
-        for num = 2:10
-            if abs(val - num/sqrt(surd)) < 1e-10
+    % Check for patterns like a/√b
+    for num = 1:10
+        for surd = common_surds
+            % Check val ≈ num/√surd
+            if abs(val - num/sqrt(surd)) < tolerance
                 formatted = sprintf('%d/√%d', num, surd);
-                success = true;
                 return;
             end
-            
-            if abs(val + num/sqrt(surd)) < 1e-10
+            % Check val ≈ -num/√surd
+            if abs(val + num/sqrt(surd)) < tolerance
                 formatted = sprintf('-%d/√%d', num, surd);
-                success = true;
                 return;
             end
-        end
-        
-        % Check for patterns like √n/b
-        for denom = 2:10
-            if abs(val - sqrt(surd)/denom) < 1e-10
-                formatted = sprintf('√%d/%d', surd, denom);
-                success = true;
+            % Check val ≈ √surd/num
+            if abs(val - sqrt(surd)/num) < tolerance
+                formatted = sprintf('√%d/%d', surd, num);
                 return;
             end
-            
-            if abs(val + sqrt(surd)/denom) < 1e-10
-                formatted = sprintf('-√%d/%d', surd, denom);
-                success = true;
+            % Check val ≈ -√surd/num
+            if abs(val + sqrt(surd)/num) < tolerance
+                formatted = sprintf('-√%d/%d', surd, num);
                 return;
             end
         end
     end
+    
+    % Try to express as a/b * √c
+    for num = 1:20
+        for denom = 1:20
+            for surd = common_surds
+                test_val = (num/denom) * sqrt(surd);
+                if abs(val - test_val) < tolerance
+                    if denom == 1
+                        formatted = sprintf('%d√%d', num, surd);
+                    else
+                        formatted = sprintf('%d√%d/%d', num, surd, denom);
+                    end
+                    return;
+                end
+                if abs(val + test_val) < tolerance
+                    if denom == 1
+                        formatted = sprintf('-%d√%d', num, surd);
+                    else
+                        formatted = sprintf('-%d√%d/%d', num, surd, denom);
+                    end
+                    return;
+                end
+            end
+        end
+    end
+    
+    % Try to detect if it's √(a/b)
+    for num = 1:100
+        for denom = 1:100
+            if abs(val^2 - num/denom) < tolerance
+                if denom == 1
+                    formatted = sprintf('√%d', num);
+                else
+                    formatted = sprintf('√(%d/%d)', num, denom);
+                end
+                return;
+            end
+            if abs(val^2 + num/denom) < tolerance
+                if denom == 1
+                    formatted = sprintf('-√%d', num);
+                else
+                    formatted = sprintf('-√(%d/%d)', num, denom);
+                end
+                return;
+            end
+        end
+    end
+    
+    % If all else fails, return as a decimal
+    formatted = sprintf('%g', val);
 end

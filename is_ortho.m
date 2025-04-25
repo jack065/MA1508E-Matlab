@@ -2,21 +2,40 @@ function is_ortho(varargin)
     % IS_ORTHO - Check if vectors form orthogonal/orthonormal set and normalize them
     %
     % Usage:
-    %   is_ortho(v1, v2, ...)
-    %   is_ortho({v1, v2, ...})
+    %   is_ortho(v1, v2, ...)       % Individual vectors
+    %   is_ortho({v1, v2, ...})     % Cell array of vectors
+    %   is_ortho(A)                 % Matrix (columns treated as vectors)
     %
     % Inputs:
     %   v1, v2, ... - Column vectors to check
     %   OR
     %   {v1, v2, ...} - Cell array of column vectors
+    %   OR
+    %   A - Matrix where each column is treated as a vector
     %
-    % Example:
+    % Examples:
     %   is_ortho([1;0;0], [0;1;0], [0;0;1])
+    %   is_ortho(eye(3))  % Identity matrix (columns are standard basis)
     
     % Handle different input formats
-    if nargin == 1 && iscell(varargin{1})
-        vectors = varargin{1};
+    if nargin == 1
+        if iscell(varargin{1})
+            % Case: is_ortho({v1, v2, ...})
+            vectors = varargin{1};
+        elseif ismatrix(varargin{1}) && size(varargin{1}, 2) > 1
+            % Case: is_ortho(A) - Matrix with multiple columns
+            A = varargin{1};
+            vectors = cell(1, size(A, 2));
+            for i = 1:size(A, 2)
+                vectors{i} = A(:, i);
+            end
+            fprintf('Treating the %d columns of the input matrix as vectors.\n\n', size(A, 2));
+        else
+            % Single vector/matrix with one column
+            vectors = {varargin{1}};
+        end
     else
+        % Case: is_ortho(v1, v2, ...)
         vectors = varargin;
     end
     
@@ -51,7 +70,8 @@ function is_ortho(varargin)
         for j = i+1:n_vectors
             dot_product = dot(vectors{i}, vectors{j});
             if abs(dot_product) > tol
-                fprintf('Vectors %d and %d are not orthogonal: dot product = %g\n', i, j, dot_product);
+                fprintf('Vectors %d and %d are not orthogonal: dot product = %s\n', ...
+                        i, j, format_exact(dot_product));
                 is_orthogonal = false;
             end
         end
@@ -69,7 +89,7 @@ function is_ortho(varargin)
     fprintf('\nChecking vector norms...\n');
     for i = 1:n_vectors
         vector_norm = norm(vectors{i});
-        fprintf('Vector %d norm = %g\n', i, vector_norm);
+        fprintf('Vector %d norm = %s\n', i, format_exact(vector_norm));
         
         if abs(vector_norm - 1) > tol
             is_orthonormal = false;
@@ -88,19 +108,28 @@ function is_ortho(varargin)
         % Calculate vector norm
         vector_norm = norm(vectors{i});
         
-        % Display as 1/√(norm^2) × [original vector]
-        fprintf('Vector %d: 1/√%d × [', i, round(vector_norm^2));
+        if vector_norm < tol
+            % Handle zero vectors
+            fprintf('Vector %d: [', i);
+            for j = 1:dim
+                if j > 1
+                    fprintf('; ');
+                end
+                fprintf('0');
+            end
+            fprintf('] (zero vector)\n');
+            continue;
+        end
         
-        % Print the original vector entries
+        % Display as 1/√(norm^2) × [original vector]
+        fprintf('Vector %d: 1/√%s × [', i, format_exact(vector_norm^2));
+        
+        % Print the original vector entries using format_exact
         for j = 1:length(vectors{i})
             if j > 1
                 fprintf('; ');
             end
-            if vectors{i}(j) == round(vectors{i}(j))
-                fprintf('%d', vectors{i}(j));
-            else
-                fprintf('%g', vectors{i}(j));
-            end
+            fprintf('%s', format_exact(vectors{i}(j)));
         end
         fprintf(']\n');
     end
