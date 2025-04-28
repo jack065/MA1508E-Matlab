@@ -202,6 +202,40 @@ function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A)
                 fprintf('Column %d is a generalized eigenvector of column %d (λ = ', gen_idx, reg_idx);
                 format_complex_eigenvalue(lambda_i);
                 fprintf(')\n');
+                
+                % Display the equation and computed value
+                fprintf('Demonstration: (A - λI)v₂ = v₁\n');
+                fprintf('Where:\n');
+                fprintf('- λ = ');
+                format_complex_eigenvalue(lambda_i);
+                fprintf('\n- v₂ = Column %d = ', gen_idx);
+                display_vector(gen_vec);
+                fprintf('\n\nComputed (A - λI)v₂:\n');
+                display_vector(result);
+                
+                % Calculate the comparison with regular eigenvector
+                reg_vec = V_final(:, reg_idx);
+                fprintf('\nRegular eigenvector (Column %d):\n', reg_idx);
+                display_vector(reg_vec);
+                
+                % Check if result is proportional to the regular eigenvector
+                if norm(double(result)) > 1e-10
+                    % Find scalar multiple
+                    nonzero_idx = find(abs(double(reg_vec)) > 1e-10, 1);
+                    if ~isempty(nonzero_idx)
+                        scalar = result(nonzero_idx) / reg_vec(nonzero_idx);
+                        fprintf('\nThe result is %s times the regular eigenvector\n', format_exact(scalar));
+                        
+                        % Calculate and display the actual generalized eigenvector
+                        scaled_vec = gen_vec / scalar;
+                        fprintf('\nActual generalized eigenvector (after normalization):\n');
+                        display_vector(scaled_vec);
+                        fprintf('\n\n');
+                        
+                        % Update V_final with the normalized generalized eigenvector
+                        V_final(:, gen_idx) = scaled_vec;
+                    end
+                end
             end
         end
     else
@@ -255,4 +289,48 @@ function format_complex_eigenvalue(lambda_val)
         % Fall back to symbolic display if numeric conversion fails
         fprintf('%s', char(lambda_val));
     end
+end
+
+function display_vector(vec)
+    % Helper function to display a vector in column format
+    fprintf('[');
+    for i = 1:length(vec)
+        if i > 1
+            fprintf('\n ');
+        end
+        if isreal(vec(i))
+            fprintf('%s', format_exact(vec(i)));
+        else
+            % Handle complex numbers
+            real_part = real(vec(i));
+            imag_part = imag(vec(i));
+            
+            if abs(real_part) > 1e-10
+                real_str = format_exact(real_part);
+                if abs(imag_part) > 1e-10
+                    imag_str = format_exact(abs(imag_part));
+                    if imag_part > 0
+                        fprintf('%s + %si', real_str, imag_str);
+                    else
+                        fprintf('%s - %si', real_str, imag_str);
+                    end
+                else
+                    fprintf('%s', real_str);
+                end
+            else
+                % Only imaginary part
+                if abs(imag_part) > 1e-10
+                    imag_str = format_exact(abs(imag_part));
+                    if imag_part > 0
+                        fprintf('%si', imag_str);
+                    else
+                        fprintf('-%si', imag_str);
+                    end
+                else
+                    fprintf('0'); % Both parts are zero
+                end
+            end
+        end
+    end
+    fprintf(']');
 end
