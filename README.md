@@ -208,18 +208,31 @@ Computes eigenvalues, regular eigenvectors, and generalized eigenvectors for a s
 **Usage:**  
 ```matlab
 [V, lambda, isGeneralized] = eigen_helper(A)
+[V, lambda, isGeneralized] = eigen_helper(A, 'stoch')  % for stochastic matrices
 ```
-- `V`: columns are eigenvectors and generalized eigenvectors
-- `lambda`: corresponding eigenvalues
+- `V`: columns are eigenvectors and generalized eigenvectors  
+- `lambda`: corresponding eigenvalues  
 - `isGeneralized`: logical array, true for generalized eigenvectors
 
 Example:
 ```matlab
 A = [6 2 1; 0 3 1; 0 0 3];
-[V, lambda, isGen] = eigen_helper(A)
+[V, lambda, isGen] = eigen_helper(A, 'stoch')
 ```
 
 ---
+
+### `format_exact`
+Formats a numeric value in exact mathematical form, returning a fraction, surd, or decimal representation.  
+**Usage:**  
+```matlab
+formatted = format_exact(value)
+```
+Example:
+```matlab
+result = format_exact(0.3333333)
+% Output might be: '1/3'
+```
 
 ## Error Handling
 - Validates matrix dimensions
@@ -228,7 +241,8 @@ A = [6 2 1; 0 3 1; 0 0 3];
 - Validates row indices and operations
 
 ## Tips
-1. Always run `startup.m` first
-2. Use `showmatrix()` for clean output
-3. Leverage undo functionality for mistakes
-4. Use symbolic variables (`syms`) for parametric matrices
+1. Always run `startup.m` first  
+2. Use `showmatrix()` for clean output  
+3. Leverage undo functionality for mistakes  
+4. Use symbolic variables (`syms`) for parametric matrices  
+5. Utilize `format_exact` for precise numerical formatting

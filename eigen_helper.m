@@ -1,10 +1,14 @@
-function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A)
+function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A, varargin)
 %EIGEN_HELPER Computes eigenvalues, regular eigenvectors, and generalized eigenvectors.
 %   [V, lambda, isGeneralized] = eigen_helper(A) computes eigenvalues,
 %   regular eigenvectors, and generalized eigenvectors for the square matrix A.
 %
+%   [V, lambda, isGeneralized] = eigen_helper(A, 'stoch') additionally checks
+%   if A is a stochastic matrix and normalizes eigenvectors of real eigenvalues.
+%
 %   Input:
 %       A : A square numeric matrix.
+%       'stoch' : (Optional) Flag to handle A as a stochastic matrix.
 %
 %   Outputs:
 %       V_final : A matrix whose columns form a basis of eigenvectors and
@@ -15,11 +19,42 @@ function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A)
 %                             true if the k-th column of V_final is a generalized
 %                             eigenvector, and false otherwise.
 
+    % Check for optional 'stoch' argument
+    handle_stochastic = false;
+    if nargin > 1 && strcmpi(varargin{1}, 'stoch')
+        handle_stochastic = true;
+    end
+
     if ~ismatrix(A) || size(A,1) ~= size(A,2)
         error('Input must be a square matrix.');
     end
     if ~isnumeric(A)
         error('Input matrix must be numeric.');
+    end
+    
+    % Check if matrix is stochastic when flag is provided
+    is_stochastic = false;
+    stochastic_type = '';
+    if handle_stochastic
+        % Check for row stochastic (rows sum to 1)
+        row_sums = sum(A, 2);
+        is_row_stochastic = all(A(:) >= 0) && all(abs(row_sums - 1) < 1e-10);
+        
+        % Check for column stochastic (columns sum to 1)
+        col_sums = sum(A, 1);
+        is_col_stochastic = all(A(:) >= 0) && all(abs(col_sums - 1) < 1e-10);
+        
+        if is_row_stochastic
+            is_stochastic = true;
+            stochastic_type = 'row';
+            fprintf('\nDetected row-stochastic matrix (rows sum to 1)\n');
+        elseif is_col_stochastic
+            is_stochastic = true;
+            stochastic_type = 'column';
+            fprintf('\nDetected column-stochastic matrix (columns sum to 1)\n');
+        else
+            fprintf('\nWarning: Matrix is not stochastic despite "stoch" flag.\n');
+        end
     end
 
     n = size(A, 1);
@@ -146,6 +181,61 @@ function [V_final, lambda_final, isGeneralized_final] = eigen_helper(A)
         V_final = V_final(:, 1:(col_idx-1));
         lambda_final = lambda_final(1:(col_idx-1));
         isGeneralized_final = isGeneralized_final(1:(col_idx-1));
+    end
+
+    % After calculating all eigenvectors, handle stochastic normalization
+    if is_stochastic
+        fprintf('\nANALYZING EIGENVECTORS OF STOCHASTIC MATRIX:\n');
+        fprintf('-------------------------------------------\n');
+        
+        for i = 1:size(V_final, 2)
+            % Only process eigenvectors for real eigenvalues
+            if isreal(double(lambda_final(i))) && ~isGeneralized_final(i)
+                vec = V_final(:, i);
+                fprintf('\nEigenvector %d (eigenvalue λ = %s):\n', i, format_exact(double(lambda_final(i))));
+                
+                % Display the original eigenvector
+                fprintf('Original eigenvector:\n');
+                display_vector(vec);
+                
+                % Check if already a probability vector
+                vec_double = double(vec);
+                vec_sum = sum(vec_double);
+                
+                if abs(vec_sum) < 1e-10
+                    fprintf('\nVector sums to approximately zero, cannot normalize as a probability vector.\n');
+                else
+                    % Check if already normalized
+                    is_already_normalized = all(vec_double >= -1e-10) && abs(vec_sum - 1) < 1e-10;
+                    
+                    if is_already_normalized
+                        fprintf('\nEigenvector is already a probability vector (non-negative and sums to 1).\n');
+                    else
+                        % Normalize the vector
+                        normalized_vec = vec / vec_sum;
+                        
+                        % Check if normalized vector has negative values
+                        has_negatives = any(double(normalized_vec) < -1e-10);
+                        
+                        fprintf('\nNormalized eigenvector (divided by sum = %s):\n', format_exact(vec_sum));
+                        display_vector(normalized_vec);
+                        
+                        if has_negatives
+                            fprintf('\nNote: Normalized vector has negative values, may not be suitable as a probability vector.\n');
+                        else
+                            fprintf('\nVector successfully normalized as a probability vector.\n');
+                        end
+                        
+                        % Update the eigenvector in the final matrix
+                        if ~has_negatives || lambda_final(i) == 1
+                            V_final(:, i) = normalized_vec;
+                            fprintf('Updated eigenvector %d in the result matrix.\n', i);
+                        end
+                    end
+                end
+                fprintf('\n');
+            end
+        end
     end
 
     % Display which columns are regular vs. generalized eigenvectors
