@@ -1,6 +1,6 @@
 # Matrix Operations Program
 
-This MATLAB program provides a suite of tools for matrix manipulation and analysis, particularly useful for linear algebra operations.
+This MATLAB program serves as a way to complete linear algebra computations quickly. Feel free to create a pull request or suggest possible changes.
 
 ## Getting Started
 
