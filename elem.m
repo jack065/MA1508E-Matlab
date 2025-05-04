@@ -1,4 +1,4 @@
-function result = elem(matrix, row1, operation, row2, scalar)
+function result = elem(matrix, row1, operation, scalar, row2)
     global matrix_history;
     matrix_history{end+1} = matrix;
     [m, ~] = size(matrix);
@@ -15,24 +15,30 @@ function result = elem(matrix, row1, operation, row2, scalar)
     % Perform operations and construct elementary matrix
     switch lower(operation)
         case 's'
+            if row1 == row2
+                warning('Swapping a row with itself has no effect.');
+            end
             E([row1,row2],:) = E([row2,row1],:);
             result([row1,row2],:) = result([row2,row1],:);
         case '+'
-            if nargin < 5
+            if nargin < 4
                 error('Scalar argument is required for addition operation');
             end
+            % Correct elementary matrix: maintains 1 on diagonal
             E(row1,row2) = scalar;
             result(row1,:) = result(row1,:) + scalar * result(row2,:);
         case '-'
-            if nargin < 5
+            if nargin < 4
                 error('Scalar argument is required for subtraction operation');
             end
+            % Correct elementary matrix: maintains 1 on diagonal
             E(row1,row2) = -scalar;
             result(row1,:) = result(row1,:) - scalar * result(row2,:);
         case '*'
-            if nargin < 5
+            if nargin < 4
                 error('Scalar argument is required for scalar operation');
             end
+            % This one is correct
             E(row1,row1) = scalar;
             result(row1,:) = scalar * result(row1,:);
         otherwise
